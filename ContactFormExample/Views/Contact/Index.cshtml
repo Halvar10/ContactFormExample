@@ -1,0 +1,29 @@
+@model ContactFormExample.Models.ContactFormModel
+
+@{
+    ViewData["Title"] = "Kontakt";
+}
+
+<h2>Kontakt</h2>
+
+<div style="color:red">@ViewData["Message"]</div>
+
+<form asp-action="Submit" method="post" enctype="multipart/form-data">
+    <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="Name" required />
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="Email" required />
+    </div>
+    <div>
+        <label for="text">Message:</label>
+        <textarea id="text" name="Text" required></textarea>
+    </div>
+    <div>
+        <label for="attachments">Attachments:</label>
+        <input type="file" id="attachments" name="Attachments" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
+    </div>
+    <button type="submit">Senden</button>
+</form>
