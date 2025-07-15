@@ -1,7 +1,12 @@
 ﻿using ContactFormExample.Models;
+using MailKit.Net.Proxy;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Net.Mail;
+using MimeKit;
+using System.IO;
+
 
 namespace ContactFormExample.Controllers
 {
@@ -35,15 +40,21 @@ namespace ContactFormExample.Controllers
                 return View("Index", model);
             }
 
-            var emailMessage = new MailMessage(mailfrom, mailto)
+            var emailMessage = new MimeMessage()
             {
                 Subject = "Contact form message",
-                
-                Body = $"Name: {model.Name}\nEmail: {model.Email}\nMessage:\n{model.Text}",
-
-                IsBodyHtml = false
             };
 
+            emailMessage.From.Add(new MailboxAddress("Contact Form", mailfrom));
+            emailMessage.To.Add(MailboxAddress.Parse(mailto));
+
+            var multipart = new Multipart("mixed");
+
+            var body = new TextPart(MimeKit.Text.TextFormat.Plain)
+            {
+                Text = $"Name: {model.Name}\nEmail: {model.Email}\nMessage:\n{model.Text}"
+            };
+            multipart.Add(body);
 
             foreach (var attachment in model.Attachments ?? new List<IFormFile>())
             {
@@ -51,19 +62,24 @@ namespace ContactFormExample.Controllers
                 {
                     using (var stream = new MemoryStream())
                     {
-                        await attachment.CopyToAsync(stream);
-                        emailMessage.Attachments.Add(new Attachment(stream, attachment.FileName));
+                        var mimeAttachment = new MimePart(attachment.ContentType)
+                        {
+                            Content = new MimeContent(stream, ContentEncoding.Default),
+                            ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                            ContentTransferEncoding = ContentEncoding.Base64,
+                            FileName = Path.GetFileName(attachment.FileName)
+                        };
+                        multipart.Add(mimeAttachment);
                     }
                 }
             }
 
-            using (var smtpClient = new SmtpClient(mailhost))
+            using (var smtpClient = new SmtpClient())
             {
-                smtpClient.Credentials = new System.Net.NetworkCredential(mailaccount, mailpw);
-                smtpClient.Port = 587; // or 25, or 465
-                smtpClient.EnableSsl = true;
-
-                await smtpClient.SendMailAsync(emailMessage);
+                smtpClient.Connect(mailhost, 465, true);
+                smtpClient.Authenticate(mailaccount, mailpw);
+                smtpClient.Send(emailMessage);
+                smtpClient.Disconnect(true);
             }
 
             return RedirectToAction("Success");
