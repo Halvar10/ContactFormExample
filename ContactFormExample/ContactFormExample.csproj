@@ -8,16 +8,20 @@
 
   <ItemGroup>
     <Content Remove="Views\Contact.cshtml" />
-    <Content Remove="Views\Contact\Success.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Views\Contact\Success.cshtml" />
     <None Include="Views\Contact\Index.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\Contact\Success.cshtml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

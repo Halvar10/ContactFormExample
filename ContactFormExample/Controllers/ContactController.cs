@@ -42,7 +42,7 @@ namespace ContactFormExample.Controllers
 
             var emailMessage = new MimeMessage()
             {
-                Subject = "Contact form message",
+                Subject = "Contact form message"
             };
 
             emailMessage.From.Add(new MailboxAddress("Contact Form", mailfrom));
@@ -73,6 +73,8 @@ namespace ContactFormExample.Controllers
                     }
                 }
             }
+
+            emailMessage.Body = multipart;
 
             using (var smtpClient = new SmtpClient())
             {
